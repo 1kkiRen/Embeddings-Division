@@ -26,9 +26,9 @@ Installation
 Requirements
 ==================
 - Python 3.9+
-- tokenizers>=0.21.0
-- transformers>=4.47.0
-- tqdm>=4.66.4
+- cachetools>=5.5.0,
+- torch>=2.5.1,
+- transformers>=4.45.2,
 
 Indices and tables
 ==================

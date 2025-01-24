@@ -8,7 +8,7 @@ from typing import List, Optional, Union
 
 
 class EmbeddingsDivision():
-    def __init__(self, model_name, device='cuda'):
+    def __init__(self, model_name, device='cpu'):
         """
         Initializes the instance using a pretrained model configuration and architecture,
         loads the corresponding model, and moves it to the specified computation device.
@@ -18,7 +18,7 @@ class EmbeddingsDivision():
                 passed to the transformers library to load the associated configuration
                 and architecture.
             device (str, optional): The computation device to which the model is moved.
-                Defaults to 'cuda'.
+                Defaults to 'cpu'.
         """
 
         config = transformers.AutoConfig.from_pretrained(model_name)
