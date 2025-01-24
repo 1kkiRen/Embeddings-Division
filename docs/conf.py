@@ -12,7 +12,7 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 project = 'EmbeddingsDivision'
-copyright = '2025, 1kkiren'
+copyright = '2025, Dmitrii Kuzmin'
 author = '1kkiren'
 release = '0.0.3'
 
