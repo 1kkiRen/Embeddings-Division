@@ -42,11 +42,11 @@ class EmbeddingsDivision():
             AutoModelForCausalLM: An instance of the custom model class with loaded weights.
         """
 
-        class ModelForCasualLM(model_class):
+        class ModelForCausalLM(model_class):
             def __init__(self, model_name):
                 super().__init__(model_name)
 
-        return ModelForCasualLM.from_pretrained(model_name)
+        return ModelForCausalLM.from_pretrained(model_name)
 
     def divide_embeddings(self, ratio: float):
         """
