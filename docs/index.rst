@@ -20,7 +20,7 @@ Installation
 
 .. code-block:: bash
 
-    pip install embeddingsdivision
+    pip install embdiv
 
 
 Requirements
