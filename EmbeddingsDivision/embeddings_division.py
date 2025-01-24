@@ -1,4 +1,3 @@
-import os
 from cachetools import Cache
 import torch
 import gc
@@ -35,7 +34,7 @@ class EmbeddingsDivision():
         Generates a specialized model class by inheriting from the specified base model and
         initializes it with the provided model name. The resulting model is loaded with
         pretrained weights via the from_pretrained method.
-        
+
         Args:
             model_class (AutoModelForCausalLM): The Hugging Face model class to be extended.
             model_name (str): The name or path of the pretrained model.
@@ -53,14 +52,14 @@ class EmbeddingsDivision():
         """
         Splits the model's embedding layer into two new embedding layers, each sized
         according to the specified ratio of the original vocabulary size.
-        
+
         Args:
             ratio (float): A floating-point value between 0 and 1, indicating the
                 proportion of the vocabulary allocated to the first embedding layer.
-        
+
         Raises:
             ValueError: If the ratio is not strictly between 0 and 1.
-            
+
         This method replaces the original embedding layer with two new embedding
         layers, transfers the corresponding weight data from the original embedding
         to each of the new layers, and updates the model's forward pass. The original
