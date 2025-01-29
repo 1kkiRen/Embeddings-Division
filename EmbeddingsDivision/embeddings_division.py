@@ -94,7 +94,7 @@ class EmbeddingsDivision():
         gc.collect()
 
     def forward_change(self):
-        self.original_forward = self.model.forward
+        self.model.original_forward = self.model.forward
         self.model.forward = self.modified_forward
 
     def original_forward(self, *args, **kwargs):
