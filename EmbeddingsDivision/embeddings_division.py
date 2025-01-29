@@ -6,6 +6,7 @@ from cachetools import Cache
 from typing import List, Optional, Union
 
 
+
 class EmbeddingsDivision():
     def __init__(self, model_name, device='cpu'):
         """
@@ -104,8 +105,7 @@ class EmbeddingsDivision():
         input_ids: torch.LongTensor = None,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
-        past_key_values: Optional[Union[Cache,
-                                        List[torch.FloatTensor]]] = None,
+        past_key_values: Optional[Union[Cache, List[torch.FloatTensor]]] = None,
         inputs_embeds: Optional[torch.FloatTensor] = None,
         labels: Optional[torch.LongTensor] = None,
         use_cache: Optional[bool] = None,
@@ -120,17 +120,17 @@ class EmbeddingsDivision():
             raise ValueError(
                 "You have to specify either input_ids or inputs_embeds")
 
-        mask = input_ids > self.model.model.embed_tokens1.num_embeddings
+        mask = input_ids > self.model.embed_tokens1.num_embeddings
 
         pretrained_batch = input_ids.clone()
         pretrained_batch[mask] = 0
 
-        inputs_embeds = self.model.model.embed_tokens1(pretrained_batch)
+        inputs_embeds = self.model.embed_tokens1(pretrained_batch)
 
-        input_ids -= self.model.model.embed_tokens1.num_embeddings
+        input_ids -= self.model.embed_tokens1.num_embeddings
 
         input_ids[~mask] = 0
-        non_pretrained_embedded_batch = self.model.model.embed_tokens2(
+        non_pretrained_embedded_batch = self.model.embed_tokens2(
             input_ids)
 
         inputs_embeds[mask] = non_pretrained_embedded_batch[mask]
