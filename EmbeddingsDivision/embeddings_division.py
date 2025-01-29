@@ -1,8 +1,8 @@
-from cachetools import Cache
-import torch
 import gc
-import torch.nn as nn
+import torch
 import transformers
+import torch.nn as nn
+from cachetools import Cache
 from typing import List, Optional, Union
 
 
@@ -107,11 +107,14 @@ class EmbeddingsDivision():
         past_key_values: Optional[Union[Cache,
                                         List[torch.FloatTensor]]] = None,
         inputs_embeds: Optional[torch.FloatTensor] = None,
+        labels: Optional[torch.LongTensor] = None,
         use_cache: Optional[bool] = None,
         output_attentions: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
         cache_position: Optional[torch.LongTensor] = None,
+        num_logits_to_keep: int = 0,
+        **kwargs
     ):
         if input_ids is None and inputs_embeds is None:
             raise ValueError(
@@ -145,4 +148,7 @@ class EmbeddingsDivision():
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
             cache_position=cache_position,
+            labels=labels,
+            num_logits_to_keep=num_logits_to_keep,
+            **kwargs
         )

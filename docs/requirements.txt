@@ -1,4 +1,4 @@
-cachetools==5.5.0
-torch==2.5.1
-transformers==4.45.2
+cachetools>=5.5.0
+torch>=2.5.1
+transformers>=4.45.2
 sphinx-rtd-theme
