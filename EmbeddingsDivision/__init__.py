@@ -1,5 +1,5 @@
 """
-EmbeddingsDivision library v0.0.6
+EmbeddingsDivision library v0.0.7
 
 The Apache 2.0 License Copyright © Dmitrii Kuzmin
 """

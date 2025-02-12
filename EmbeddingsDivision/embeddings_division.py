@@ -47,7 +47,7 @@ class EmbeddingsDivision():
             def __init__(self, model_name):
                 super().__init__(model_name)
 
-        return ModelForCausalLM.from_pretrained(model_name)
+        return ModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16)
 
     def divide_embeddings(self, ratio: float):
         """
@@ -136,6 +136,7 @@ class EmbeddingsDivision():
         inputs_embeds[mask] = non_pretrained_embedded_batch[mask]
 
         input_ids = None
+
 
         return self.original_forward(
             input_ids=input_ids,
