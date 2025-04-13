@@ -1,6 +1,9 @@
+# [Currently in development!]
+
+
 # Embeddings-Division
 
-Python script for for dividing Embedding layer of LLM.
+Python script for dividing `Embedding` layer of LLM.
 
 The solution was tested on meta-llama/Llama-3.2-1B.
 

@@ -6,7 +6,6 @@ from cachetools import Cache
 from typing import List, Optional, Union
 
 
-
 class EmbeddingsDivision():
     def __init__(self, model_name, device='cpu'):
         """
@@ -25,10 +24,50 @@ class EmbeddingsDivision():
         model_type = [
             arch for arch in config.architectures if arch.endswith('LM')][0]
 
-        self.model = self.create_inner_model(
-            getattr(transformers, model_type), model_name)
+        try:
+            self.model = self.create_inner_model(
+                getattr(transformers, model_type), model_name)
+            self.forward_change()
+            
+            
+        except Exception as e:
+            self.model = self.create_tuned_model(
+                getattr(transformers, "LlamaForCausalLM"), model_name)
+        
         self.device = device
-        self.model.to(device)
+
+    def scheduler_hook(self, grad, row):
+        if self.training == True:
+            if self.model.forward_passes % 10 == 0:
+                grad[row] = 0
+            
+        return grad
+    
+    def create_tuned_model(self, model_class: transformers.AutoModelForCausalLM, model_name: str):
+        """
+        Generates a specialized model class by inheriting from the specified base model and
+        initializes it with the provided model name. The resulting model is loaded with
+        pretrained weights via the from_pretrained method.
+
+        Args:
+            model_class (AutoModelForCausalLM): The Hugging Face model class to be extended.
+            model_name (str): The name or path of the pretrained model.
+        Returns:
+            AutoModelForCausalLM: An instance of the custom model class with loaded weights.
+        """
+
+        class ModelForCausalLM(model_class):
+            def __init__(self, model_name):
+                super().__init__(model_name)
+                self.model.embed_tokens1 = nn.Embedding(85629, 2048)
+                self.model.embed_tokens2 = nn.Embedding(42627, 2048)
+
+        model = ModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
+        
+        model.model.embed_tokens.weight.data[:85629] = model.model.embed_tokens1.weight.data
+        model.model.embed_tokens.weight.data[85629:] = model.model.embed_tokens2.weight.data
+
+        return model
 
     def create_inner_model(self, model_class: transformers.AutoModelForCausalLM, model_name: str):
         """
@@ -47,8 +86,10 @@ class EmbeddingsDivision():
             def __init__(self, model_name):
                 super().__init__(model_name)
 
-        return ModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16)
-
+        model = ModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
+        
+        return model
+    
     def divide_embeddings(self, ratio: float):
         """
         Splits the model's embedding layer into two new embedding layers, each sized
@@ -76,6 +117,9 @@ class EmbeddingsDivision():
             round(vocab_size * ratio), self.model.model.config.hidden_size)
         second_embedding = nn.Embedding(
             round(vocab_size * (1 - ratio)), self.model.model.config.hidden_size)
+        
+        # set the hook to the first embedding
+        # first_embedding.weight.register_hook(lambda grad: self.scheduler_hook(grad, i) for i in range(first_embedding.weight.size(0)))
 
         first_embedding.weight.data.copy_(
             self.model.model.embed_tokens.weight.data[:round(vocab_size * ratio)])
@@ -87,6 +131,7 @@ class EmbeddingsDivision():
 
         setattr(self.model.model, 'embed_tokens1', first_embedding)
         setattr(self.model.model, 'embed_tokens2', second_embedding)
+        setattr(self.model, 'forward_passes', 0)
 
         del self.model.model.embed_tokens
 
@@ -94,6 +139,7 @@ class EmbeddingsDivision():
         gc.collect()
 
     def forward_change(self):
+        setattr(self.model, 'forward_passes', 0)
         self.model.original_forward = self.model.forward
         self.model.forward = self.modified_forward
 
@@ -120,23 +166,30 @@ class EmbeddingsDivision():
             raise ValueError(
                 "You have to specify either input_ids or inputs_embeds")
 
-        mask = input_ids > self.model.embed_tokens1.num_embeddings
+        mask = input_ids > self.model.model.embed_tokens1.num_embeddings
 
         pretrained_batch = input_ids.clone()
         pretrained_batch[mask] = 0
 
-        inputs_embeds = self.model.embed_tokens1(pretrained_batch)
+        inputs_embeds = self.model.model.embed_tokens1(pretrained_batch)
 
-        input_ids -= self.model.embed_tokens1.num_embeddings
+        input_ids -= self.model.model.embed_tokens1.num_embeddings
 
         input_ids[~mask] = 0
-        non_pretrained_embedded_batch = self.model.embed_tokens2(
+        non_pretrained_embedded_batch = self.model.model.embed_tokens2(
             input_ids)
 
         inputs_embeds[mask] = non_pretrained_embedded_batch[mask]
 
         input_ids = None
-
+        
+        # print(inputs_embeds)
+        if self.model.training == True:
+            self.model.forward_passes += 1
+        
+        print("========================================")
+        print(inputs_embeds)
+        print("========================================")
 
         return self.original_forward(
             input_ids=input_ids,
